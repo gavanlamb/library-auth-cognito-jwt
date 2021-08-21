@@ -1,11 +1,14 @@
 using System;
 using System.Linq;
 using System.Net;
+using Expensely.Authentication.Cognito.Jwt.Handlers;
 using Expensely.Authentication.Cognito.Jwt.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using HasScope = Expensely.Authentication.Cognito.Jwt.Models.HasScope;
 
 namespace Expensely.Authentication.Cognito.Jwt.Extensions
 {
@@ -70,11 +73,14 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                             {
                                 foreach (var scope in scopeConfig.Value)
                                 {
-                                    policy.Requirements.Add(new HasScopeRequirement(scope, config.Issuer));
+                                    policy.Requirements.Add(new HasScope(scope, config.Issuer));
                                 }
                             });
                     }
                 });
+            
+            
+            services.AddSingleton<IAuthorizationHandler, Handlers.HasScope>();
 
             return services;
         }
