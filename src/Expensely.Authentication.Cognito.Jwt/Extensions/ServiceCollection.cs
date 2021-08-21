@@ -31,7 +31,7 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
             if (string.IsNullOrWhiteSpace(config.JwtKeySetUrl))
                 throw new ArgumentException($"{configurationName}:JwtKeySetUrl is null or empty");
             
-            if (config.Scopes == null || config.Scopes.Any(string.IsNullOrWhiteSpace))
+            if (config.Scopes == null || !config.Scopes.Any())
                 throw new ArgumentException($"{configurationName}:Scopes is null or empty");
             
             services
@@ -62,9 +62,17 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
             services
                 .AddAuthorization(options =>
                 {
-                    foreach (var scope in config.Scopes)
+                    foreach (var scopeConfig in config.Scopes)
                     {
-                        options.AddPolicy(scope, policy => policy.Requirements.Add(new HasScopeRequirement(scope, config.Issuer)));
+                        options.AddPolicy(
+                            scopeConfig.Key,
+                            policy =>
+                            {
+                                foreach (var scope in scopeConfig.Value)
+                                {
+                                    policy.Requirements.Add(new HasScopeRequirement(scope, config.Issuer));
+                                }
+                            });
                     }
                 });
 

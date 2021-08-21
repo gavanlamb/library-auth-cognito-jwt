@@ -8,6 +8,6 @@ namespace Expensely.Authentication.Cognito.Jwt.Options
         
         public string JwtKeySetUrl { get; set; }
 
-        public IEnumerable<string> Scopes { get; set; }
+        public Dictionary<string, IEnumerable<string>> Scopes { get; set; }
     }
 }

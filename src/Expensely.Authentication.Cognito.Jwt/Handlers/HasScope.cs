@@ -11,14 +11,14 @@ namespace Expensely.Authentication.Cognito.Jwt.Handlers
         {
             
             // If user does not have the scope claim, get out of here
-            if (!context.User.HasClaim(c => c.Type == "permissions" && c.Issuer == requirement.Issuer))
+            if (!context.User.HasClaim(c => c.Type == "scope" && c.Issuer == requirement.Issuer))
                 return;
 
             // Split the scopes string into an array
             var scopes = context
                 .User
                 .FindAll(c => 
-                    c.Type == "permissions" && 
+                    c.Type == "scope" && 
                     c.Issuer == requirement.Issuer)
                 .Select(claim => 
                     claim.Value)

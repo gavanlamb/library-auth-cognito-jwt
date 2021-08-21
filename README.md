@@ -20,9 +20,21 @@ Add Configuration
   "Cognito": {
     "Issuer": "url",
     "JwtKeySetUrl": "url",
-    "Scopes": [
-      "scope1"
-    ]
+    "Scopes": {
+      "create": [
+        "time:create"
+      ],
+      "update": [
+        "time:update"
+      ],
+      "delete": [
+        "time:delete",
+        "time:create"
+      ],
+      "read": [
+        "time:read"
+      ]
+    }
   }
 }
 ```
