@@ -1,9 +1,12 @@
+using System;
+using System.Linq;
 using System.Net;
+using System.Text.Json;
+using Expensely.Authentication.Cognito.Jwt.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace Expensely.Authentication.Cognito.Jwt.Extensions
 {
@@ -16,25 +19,41 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
         /// <param name="configuration">Configuration provider</param>
         /// <param name="configurationName">Name of the element that contains the relevant configuration</param>
         /// <returns></returns>
-        public static void AddCognitoJwt(
+        public static IServiceCollection AddCognitoJwt(
             this IServiceCollection services,
             IConfiguration configuration,
             string configurationName = "Auth")
         {
+            var config = configuration.GetSection(configurationName).Get<Options.Auth>();
+
+            if (string.IsNullOrWhiteSpace(config.Issuer))
+                throw new ArgumentException($"{configurationName}:Issuer is null or empty");
+            
+            if (string.IsNullOrWhiteSpace(config.JwtKeySetUrl))
+                throw new ArgumentException($"{configurationName}:JwtKeySetUrl is null or empty");
+            
+            if (config.Audiences == null || config.Audiences.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException($"{configurationName}:Audiences is null or empty");
+
+            if (config.Scopes == null || config.Scopes.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException($"{configurationName}:Scopes is null or empty");
             
             services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddAuthentication(
+                    options =>
+                    {
+                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
                 .AddJwtBearer(options =>
                 {
-                    var config = configuration.GetSection(configurationName).Get<Options.Auth>();
-
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         IssuerSigningKeyResolver = (s, securityToken, identifier, parameters) =>
                         {
                             var json = new WebClient().DownloadString(config.JwtKeySetUrl);
-            
-                            var keys = JsonConvert.DeserializeObject<JsonWebKeySet>(json).Keys;
+
+                            var keys = JsonSerializer.Deserialize<dynamic>(json).Keys;
             
                             return keys;
                         },
@@ -42,9 +61,21 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                         ValidateIssuerSigningKey = true,
                         ValidateIssuer = true,
                         ValidateLifetime = true,
-                        ValidAudiences = config.Audiences
+                        ValidAudiences = config.Audiences,
+                        ValidateAudience = true
                     };
                 });
+
+            services
+                .AddAuthorization(options =>
+                {
+                    foreach (var scope in config.Scopes)
+                    {
+                        options.AddPolicy(scope, policy => policy.Requirements.Add(new HasScopeRequirement(scope, config.Issuer)));
+                    }
+                });
+
+            return services;
         }
     }
 }
