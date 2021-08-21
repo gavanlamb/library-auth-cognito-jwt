@@ -20,8 +20,8 @@ Add Configuration
   "Cognito": {
     "Issuer": "url",
     "JwtKeySetUrl": "url",
-    "Audiences": [
-      "app ids"
+    "Scopes": [
+      "scope1"
     ]
   }
 }

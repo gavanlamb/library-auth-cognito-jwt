@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Net;
-using System.Text.Json;
 using Expensely.Authentication.Cognito.Jwt.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -32,9 +31,6 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
             if (string.IsNullOrWhiteSpace(config.JwtKeySetUrl))
                 throw new ArgumentException($"{configurationName}:JwtKeySetUrl is null or empty");
             
-            if (config.Audiences == null || config.Audiences.Any(string.IsNullOrWhiteSpace))
-                throw new ArgumentException($"{configurationName}:Audiences is null or empty");
-
             if (config.Scopes == null || config.Scopes.Any(string.IsNullOrWhiteSpace))
                 throw new ArgumentException($"{configurationName}:Scopes is null or empty");
             
@@ -53,16 +49,13 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                         {
                             var json = new WebClient().DownloadString(config.JwtKeySetUrl);
 
-                            var keys = JsonSerializer.Deserialize<dynamic>(json).Keys;
-            
-                            return keys;
+                            return JsonWebKeySet.Create(json).Keys;
                         },
                         ValidIssuer = config.Issuer,
                         ValidateIssuerSigningKey = true,
                         ValidateIssuer = true,
                         ValidateLifetime = true,
-                        ValidAudiences = config.Audiences,
-                        ValidateAudience = true
+                        ValidateAudience = false
                     };
                 });
 
