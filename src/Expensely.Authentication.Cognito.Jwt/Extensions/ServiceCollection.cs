@@ -1,4 +1,5 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using Expensely.Authentication.Cognito.Jwt.Handlers;
@@ -26,6 +27,8 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
             IConfiguration configuration,
             string configurationName = "Auth")
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             var config = configuration.GetSection(configurationName).Get<Options.Auth>();
 
             if (string.IsNullOrWhiteSpace(config.Issuer))
