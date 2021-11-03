@@ -33,7 +33,10 @@ namespace Expensely.Authentication.Cognito.Jwt.Clients
                     ClientId = clientId,
                     UserPoolId = _authOptions.UserPoolId
                 };
+                
+                //TODO ADD caching
                 var response = await _client.DescribeUserPoolClientAsync(request);
+                //TODO ADD caching
 
                 return response.UserPoolClient.AllowedOAuthScopes;
             }

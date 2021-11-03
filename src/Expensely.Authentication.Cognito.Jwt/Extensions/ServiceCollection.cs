@@ -2,6 +2,7 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
+using Amazon.CognitoIdentityProvider;
 using Expensely.Authentication.Cognito.Jwt.Clients;
 using Expensely.Authentication.Cognito.Jwt.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -87,7 +88,8 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                 });
             
             services.Configure<Auth>(configuration);
-            
+
+            services.AddAWSService<IAmazonCognitoIdentityProvider>();
             services.TryAddScoped<IAuthorizationHandler, HasScopeHandler>();
             services.TryAddScoped<IUserPoolClient, UserPoolClient>();
 
