@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Authorization;
 
-namespace Expensely.Authentication.Cognito.Jwt.Models
+namespace Expensely.Authentication.Cognito.Jwt.Requirements
 {
     public class HasScope : IAuthorizationRequirement
     {
