@@ -19,6 +19,7 @@ Add Configuration
 {
   "Cognito": {
     "Issuer": "url",
+    "UserPoolId": "identifier",
     "JwtKeySetUrl": "url",
     "Scopes": {
       "create": [
