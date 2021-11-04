@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Expensely.Authentication.Cognito.Jwt.Options;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,14 +17,21 @@ namespace Expensely.Authentication.Cognito.Jwt.Clients
         private readonly IAmazonCognitoIdentityProvider _client;
         private readonly Auth _authOptions;
         private readonly ILogger<UserPoolClient> _logger;
+        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions _defaultCacheEntryOptions;
         public UserPoolClient(
             ILogger<UserPoolClient> logger,
             IOptions<Auth> authOptions,
-            IAmazonCognitoIdentityProvider client)
+            IAmazonCognitoIdentityProvider client,
+            IMemoryCache memoryCache)
         {
             _logger = logger;
             _authOptions = authOptions.Value;
             _client = client;
+            _memoryCache = memoryCache;
+            _defaultCacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
         }
 
         public async Task<IEnumerable<string>> GetOAuthScopes(
@@ -34,11 +45,21 @@ namespace Expensely.Authentication.Cognito.Jwt.Clients
                     UserPoolId = _authOptions.UserPoolId
                 };
                 
-                //TODO ADD caching
+                var key = $"{_authOptions.UserPoolId}:{clientId}";
+                if (_memoryCache.TryGetValue(key, out IEnumerable<string> cacheValue))
+                {
+                    return cacheValue;
+                }
                 var response = await _client.DescribeUserPoolClientAsync(request);
-                //TODO ADD caching
+                if (response.HttpStatusCode >= HttpStatusCode.BadRequest)
+                {
+                    return Enumerable.Empty<string>();
+                }
 
-                return response.UserPoolClient.AllowedOAuthScopes;
+                return _memoryCache.Set(
+                    key, 
+                    response.UserPoolClient.AllowedOAuthScopes, 
+                    _defaultCacheEntryOptions);
             }
             catch (InternalErrorException exception)
             {
