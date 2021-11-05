@@ -1,5 +1,11 @@
 name: 0.0$(Rev:.r)
 
+pr:
+  - main
+
+trigger:
+  - main
+
 pool:
   vmImage: 'ubuntu-latest'
 
