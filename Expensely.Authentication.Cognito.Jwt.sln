@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{F9B62969-1AA2-48C7-8C8A-5776DAD1561C}"
 ProjectSection(SolutionItems) = preProject
 	pipelines\release.yml = pipelines\release.yml
+	pipelines\preview.yml = pipelines\preview.yml
 EndProjectSection
 EndProject
 Global

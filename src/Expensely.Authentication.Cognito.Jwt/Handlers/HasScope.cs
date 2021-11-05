@@ -1,36 +1,36 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Expensely.Authentication.Cognito.Jwt.Models;
+using Expensely.Authentication.Cognito.Jwt.Clients;
 using Microsoft.AspNetCore.Authorization;
+using HasScopeRequirement = Expensely.Authentication.Cognito.Jwt.Requirements.HasScope;
 
 namespace Expensely.Authentication.Cognito.Jwt.Handlers
 {
-    public class HasScope: AuthorizationHandler<Models.HasScope>
+    public class HasScope: AuthorizationHandler<HasScopeRequirement>
     {
-        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, Models.HasScope requirement)
+        private readonly IUserPoolClient _client;
+        public HasScope(
+            IUserPoolClient client)
         {
-            // If user does not have the scope claim, get out of here
-            if (!context.User.HasClaim(c => c.Type == "scope" && c.Issuer == requirement.Issuer))
+            _client = client;
+        }
+
+        protected override async Task HandleRequirementAsync(
+            AuthorizationHandlerContext context, 
+            HasScopeRequirement requirement)
+        {
+            if (!context.User.HasClaim(c => c.Type == "client_id" && c.Issuer == requirement.Issuer))
                 return;
 
-            // Split the scopes string into an array
-            var claims = context
-                .User
-                .FindAll(c => 
-                    c.Type == "scope" && 
-                    c.Issuer == requirement.Issuer);
-
-            var scopes = new List<string>();
-
-            foreach (var claim in claims)
-            {
-                scopes.AddRange(claim.Value.Split(" "));
-            }
+            var clientId = context.User.Claims.FirstOrDefault(x => x.Type == "client_id");
+            if (clientId == null)
+                return;
+            
+            var scopes = await _client.GetOAuthScopes(clientId.Value);
 
             // Succeed if the scope array contains the required scope
             if (scopes.Any(s => s == requirement.Scope))
-                context.Succeed(requirement); 
+                context.Succeed(requirement);
         }
     }
 }

@@ -2,14 +2,17 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
-using Expensely.Authentication.Cognito.Jwt.Handlers;
-using Expensely.Authentication.Cognito.Jwt.Models;
+using Amazon.CognitoIdentityProvider;
+using Expensely.Authentication.Cognito.Jwt.Clients;
+using Expensely.Authentication.Cognito.Jwt.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
-using HasScope = Expensely.Authentication.Cognito.Jwt.Models.HasScope;
+using HasScopeRequirement = Expensely.Authentication.Cognito.Jwt.Requirements.HasScope;
+using HasScopeHandler = Expensely.Authentication.Cognito.Jwt.Handlers.HasScope;
 
 namespace Expensely.Authentication.Cognito.Jwt.Extensions
 {
@@ -29,10 +32,13 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-            var config = configuration.GetSection(configurationName).Get<Options.Auth>();
+            var config = configuration.GetSection(configurationName).Get<Auth>();
 
             if (string.IsNullOrWhiteSpace(config.Issuer))
                 throw new ArgumentException($"{configurationName}:Issuer is null or empty");
+            
+            if (string.IsNullOrWhiteSpace(config.UserPoolId))
+                throw new ArgumentException($"{configurationName}:UserPoolId is null or empty");
             
             if (string.IsNullOrWhiteSpace(config.JwtKeySetUrl))
                 throw new ArgumentException($"{configurationName}:JwtKeySetUrl is null or empty");
@@ -41,12 +47,11 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                 throw new ArgumentException($"{configurationName}:Scopes is null or empty");
             
             services
-                .AddAuthentication(
-                    options =>
-                    {
-                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                    })
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -76,14 +81,19 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                             {
                                 foreach (var scope in scopeConfig.Value)
                                 {
-                                    policy.Requirements.Add(new HasScope(scope, config.Issuer));
+                                    policy.Requirements.Add(new HasScopeRequirement(scope, config.Issuer));
                                 }
                             });
                     }
                 });
             
-            
-            services.AddSingleton<IAuthorizationHandler, Handlers.HasScope>();
+            services.Configure<Auth>(configuration.GetSection(configurationName));
+
+            services.AddMemoryCache();
+
+            services.TryAddAWSService<IAmazonCognitoIdentityProvider>();
+            services.AddScoped<IAuthorizationHandler, HasScopeHandler>();
+            services.AddScoped<IUserPoolClient, UserPoolClient>();
 
             return services;
         }
