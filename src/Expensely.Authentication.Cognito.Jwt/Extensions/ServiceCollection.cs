@@ -87,7 +87,7 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
                     }
                 });
             
-            services.Configure<Auth>(configuration);
+            services.Configure<Auth>(configuration.GetSection(configurationName));
 
             services.AddMemoryCache();
 
