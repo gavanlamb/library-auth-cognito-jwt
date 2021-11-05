@@ -56,6 +56,11 @@ namespace Expensely.Authentication.Cognito.Jwt.Clients
                     return Enumerable.Empty<string>();
                 }
 
+                response.UserPoolClient.AllowedOAuthScopes.Remove("email");
+                response.UserPoolClient.AllowedOAuthScopes.Remove("phone");
+                response.UserPoolClient.AllowedOAuthScopes.Remove("openid");
+                response.UserPoolClient.AllowedOAuthScopes.Remove("profile");
+
                 return _memoryCache.Set(
                     key, 
                     response.UserPoolClient.AllowedOAuthScopes, 

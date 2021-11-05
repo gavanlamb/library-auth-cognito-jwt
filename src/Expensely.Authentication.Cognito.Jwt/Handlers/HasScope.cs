@@ -27,10 +27,6 @@ namespace Expensely.Authentication.Cognito.Jwt.Handlers
                 return;
             
             var scopes = await _client.GetOAuthScopes(clientId.Value);
-            
-            // If user does not have the scope claim, get out of here
-            if (!context.User.HasClaim(c => c.Type == "scope" && c.Issuer == requirement.Issuer))
-                return;
 
             // Succeed if the scope array contains the required scope
             if (scopes.Any(s => s == requirement.Scope))
