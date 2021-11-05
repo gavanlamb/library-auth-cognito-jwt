@@ -1,7 +1,7 @@
-pr: none
-
-trigger:
+pr:
   - main
+
+trigger: none
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -31,19 +31,3 @@ stages:
                 - template: templates/promote.yml
                   parameters:
                     releaseView: '0b477f7e-e363-4441-97f7-bf3189253564'
-
-  - stage: release
-    displayName: Release
-    dependsOn: prerelease
-    jobs:
-      - deployment:
-        environment: Release
-        pool:
-          vmImage: 'vs2017-win2016'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - template: templates/promote.yml
-                  parameters:
-                    releaseView: 'f9bccf78-9a6f-4e24-bcd7-b5f77186974c'

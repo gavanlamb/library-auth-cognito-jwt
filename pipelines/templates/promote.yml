@@ -1,0 +1,13 @@
+parameters:
+  - name: releaseView
+    displayName: Release view ID
+    type: string
+
+- task: rvo-vsts-promotepackage-task@3
+  displayName: Promote
+  inputs:
+    feed: '4634f7ff-ee1a-49bd-b3de-2f19eb18d3e1'
+    inputType: 'nameVersion'
+    definition: '3ede5581-4ae6-4cb0-ade3-d3fdfd3883a0'
+    version: '$(Build.BuildNumber)'
+    releaseView: ${{ parameters.releaseView }}
