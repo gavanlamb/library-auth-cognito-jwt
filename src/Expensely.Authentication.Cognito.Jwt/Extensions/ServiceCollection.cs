@@ -91,9 +91,9 @@ namespace Expensely.Authentication.Cognito.Jwt.Extensions
 
             services.AddMemoryCache();
 
-            services.AddAWSService<IAmazonCognitoIdentityProvider>();
-            services.TryAddScoped<IAuthorizationHandler, HasScopeHandler>();
-            services.TryAddScoped<IUserPoolClient, UserPoolClient>();
+            services.TryAddAWSService<IAmazonCognitoIdentityProvider>();
+            services.AddScoped<IAuthorizationHandler, HasScopeHandler>();
+            services.AddScoped<IUserPoolClient, UserPoolClient>();
 
             return services;
         }
