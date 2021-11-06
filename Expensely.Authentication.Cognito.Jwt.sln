@@ -15,6 +15,13 @@ ProjectSection(SolutionItems) = preProject
 	pipelines\preview.yml = pipelines\preview.yml
 EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{512648C2-D64A-49E0-8D9F-896C01C49BB5}"
+ProjectSection(SolutionItems) = preProject
+	pipelines\templates\build.yml = pipelines\templates\build.yml
+	pipelines\templates\promote.yml = pipelines\templates\promote.yml
+	pipelines\templates\push.yml = pipelines\templates\push.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,5 +35,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BF383A20-7261-4D7F-92EF-C43D0E313787} = {A5AE21A5-04AB-4D2F-BBBC-A0DD7778C1D7}
+		{512648C2-D64A-49E0-8D9F-896C01C49BB5} = {F9B62969-1AA2-48C7-8C8A-5776DAD1561C}
 	EndGlobalSection
 EndGlobal
